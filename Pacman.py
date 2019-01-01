@@ -7,7 +7,6 @@ WALL = 1
 GHOST = 2
 PACMAN = 3
 
-
 class Board:
 
     def __init__(self, row, column):
@@ -40,21 +39,22 @@ class Board:
 
     def putGhost(self, locations):
         for item in locations:
-            if item[0] < self.row and item[1] < self.column and item[0] > 0 and item[1] > 0 and self.board[item[0]][item[1]] == EMPTY:
+            if item[0] < self.row and item[1] < self.column and item[0] >= 0 and item[1] >= 0 and self.board[item[0]][item[1]] == EMPTY:
                 self.board[item[0]][item[1]] = GHOST
             else:
                 print("Cannot put ghost in cell: " + item.__str__())
 
+
     def putWalls(self, locations):
         for item in locations:
-            if item[0] < self.row and item[1] < self.column and item[0] > 0 and item[1] > 0 and self.board[item[0]][item[1]] == EMPTY:
+            if item[0] < self.row and item[1] < self.column and item[0] >= 0 and item[1] >= 0 and self.board[item[0]][item[1]] == EMPTY:
                 self.board[item[0]][item[1]] = WALL
             else:
                 print("Cannot put Wall in cell: " + item.__str__())
 
     def putEmpty(self, locations):
         for item in locations:
-            if item[0] < self.row and item[1] < self.column and item[0] > 0 and item[1] > 0 and self.board[item[0]][item[1]] != PACMAN:
+            if item[0] < self.row and item[1] < self.column and item[0] >= 0 and item[1] >= 0 and self.board[item[0]][item[1]] != PACMAN:
                 self.board[item[0]][item[1]] = WALL
             else:
                 print("Cannot put Clear cell: " + item.__str__())
@@ -81,8 +81,19 @@ class Board:
 
         return succ
 
+    def ghostList(self):
+        ghosts = []
+
+        for i in range(0, self.row):
+            for j in range(0, self.column):
+                if self.board[i][j] == GHOST:
+                    ghosts.append([i, j])
+
+        return ghosts
+
     #prints out shortest distance of all reachable ghosts
     def findGhosts(self):
+        ghosts = self.ghostList()
         frontier = PriorityQueue.PriorityQueue()
         visited = []
         state = self.findPacman()
@@ -105,6 +116,7 @@ class Board:
 
             if self.board[state[0]][state[1]] == GHOST:
                 print("shortest distance to Ghost: " + repr(state) + " is " + repr(node["cost"]))
+                ghosts.remove([state[0], state[1]])
                 continue
 
             for move in self.getSuccessors(state):  # for each child of the node
@@ -113,3 +125,53 @@ class Board:
                     sub_node["state"] = move
                     sub_node["cost"] = node["cost"] + 1
                     frontier.push(sub_node, sub_node["cost"])
+
+        for item in ghosts:
+            print("shortest distance to Ghost: " + repr(item) + " is infinity")
+
+    def heuristic(self, state, ghost):
+        manhattanDistance = abs(state[0] - ghost[0]) + abs(state[1] - ghost[1])
+        return manhattanDistance
+
+    #does the same thing as findGhosts by using a heuristic function - run time is faster
+    def findGhostsHeuristic(self):
+        ghosts = self.ghostList()
+        pacmanState = self.findPacman()
+
+        for item in ghosts:
+            node = {}
+            node["state"] = pacmanState
+            node["cost"] = 0
+            frontier = PriorityQueue.PriorityQueue()
+            visited = []
+
+            frontier.push(node, node["cost"])  # push beginning state with its cost into queue
+
+            # loop through queue using cost method
+            while True:
+                if frontier.isEmpty():
+                    print("shortest distance to Ghost: " + repr(item) + " is infinity")
+                    break
+
+                node = frontier.pop()
+                state = node["state"]
+                cost = node["cost"]
+
+                if state in visited:
+                    continue
+
+                visited.append(state)
+
+                if [state[0],state[1]] == item:
+                    print("shortest distance to Ghost: " + repr(state) + " is " + repr(node["cost"]))
+                    break
+
+                if self.board[state[0]][state[1]] == GHOST:
+                    continue
+
+                for move in self.getSuccessors(state):  # for each child of the node
+                    if move not in visited:  # if haven't visit it
+                        sub_node = {}  # create a node of it to push it to frontier
+                        sub_node["state"] = move
+                        sub_node["cost"] = node["cost"] + 1
+                        frontier.push(sub_node, sub_node["cost"] + self.heuristic(move, item))
