@@ -1,5 +1,6 @@
 import Pacman
 
+
 # Example1:
 b = Pacman.Board(10, 10)
 b.putPacman([3, 4])
