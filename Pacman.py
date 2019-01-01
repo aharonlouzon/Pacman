@@ -38,7 +38,6 @@ class Board:
 
         self.board[location[0]][location[1]] = PACMAN
 
-
     def putGhost(self, locations):
         for item in locations:
             if item[0] < self.row and item[1] < self.column and item[0] > 0 and item[1] > 0 and self.board[item[0]][item[1]] == EMPTY:
