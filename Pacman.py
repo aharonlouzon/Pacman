@@ -7,6 +7,7 @@ WALL = 1
 GHOST = 2
 PACMAN = 3
 
+
 class Board:
 
     def __init__(self, row, column):
