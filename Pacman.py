@@ -104,7 +104,7 @@ class Board:
         frontier.push(node, node["cost"])  # push beginning state with its cost into queue
 
         # loop through queue using cost method
-        while not frontier.isEmpty():
+        while not frontier.isEmpty() and not ghosts.__len__() <= 0:
             node = frontier.pop()
             state = node["state"]
             cost = node["cost"]
